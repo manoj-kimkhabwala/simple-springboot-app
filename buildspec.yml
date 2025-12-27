@@ -36,3 +36,7 @@ pre_build:
     commands:
       - echo "Pushing Docker image"
       - docker push $IMAGE_URI
+
+ post_build:
+    commands:
+      - docker push $IMAGE_URI
