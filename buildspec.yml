@@ -23,7 +23,7 @@ phases:
       - ls -la target/simple-springboot-app-*.jar
       - mv target/simple-springboot-app-*.jar app.jar
       - echo "Setting IMAGE_URI"
-      - IMAGE_URI="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/simple-springboot-app:latest"
+      - IMAGE_URI=087189722990.dkr.ecr.us-east-1.amazonaws.com/simple-springboot-app:latest
       - echo "IMAGE_URI=$IMAGE_URI"
       - docker build -t $IMAGE_URI .
       - docker push $IMAGE_URI
