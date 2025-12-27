@@ -1,34 +1,23 @@
-   # File: buildspec.yml
-   version: 0.2
+version: 0.2
 
-   phases:
-     install:
-       commands:
-         - echo "Installing dependencies..."
-         - apt-get update && apt-get install -y maven
-     
-     pre_build:
-       commands:
-         - echo "Logging in to Amazon ECR..."
-         - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com
-         - REPOSITORY_NAME=spring-boot-app
-         - IMAGE_TAG=latest
-         - IMAGE_URI=$AWS_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/$REPOSITORY_NAME:$IMAGE_TAG
-     
-     build:
-       commands:
-         - echo "Building Maven project..."
-         - mvn clean package -DskipTests
-         - echo "Building Docker image..."
-         - docker build -t $IMAGE_URI .
-         - docker push $IMAGE_URI
-         - echo "Writing image definitions file..."
-         - printf '[{"name":"spring-boot-app","imageUri":"%s"}]' $IMAGE_URI > imagedefinitions.json
-     
-     post_build:
-       commands:
-         - echo "Build completed on $(date)"
+phases:
+  install:
+    runtime-versions:
+      java: corretto11
 
-   artifacts:
-     files:
-       - imagedefinitions.json
+  build:
+    commands:
+      - echo "Moving to source directory"
+      - cd $CODEBUILD_SRC_DIR
+
+      - echo "Building Spring Boot JAR"
+      - mvn clean package -DskipTests
+
+      - echo "Verifying JAR"
+      - ls -l target
+
+      - echo "Building Docker image"
+      - docker build -t $IMAGE_URI .
+
+images:
+  files: []
