@@ -2,8 +2,8 @@ version: 0.2
 
 env:
   variables:
-    AWS_ACCOUNT_ID: "123456789012"      # <-- replace
-    AWS_REGION: "ap-south-1"             # <-- replace
+    AWS_ACCOUNT_ID: "087189722990"
+    AWS_REGION: "ap-south-1"
     ECR_REPO_NAME: "simple-springboot-app"
     IMAGE_TAG: "latest"
 
@@ -12,31 +12,21 @@ phases:
     runtime-versions:
       java: corretto11
 
-pre_build:
-  commands:
-    - echo "Logging in to Amazon ECR"
-    - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
+  pre_build:
+    commands:
+      - aws ecr get-login-password --region $AWS_REGION |
+        docker login --username AWS --password-stdin \
+        $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
 
-    - echo "Computing IMAGE_URI"
-    - export IMAGE_URI=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO_NAME:$IMAGE_TAG
-    - echo "IMAGE_URI=$IMAGE_URI"
+      - export IMAGE_URI=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO_NAME:$IMAGE_TAG
+      - echo "IMAGE_URI=$IMAGE_URI"
 
   build:
     commands:
-      - echo "Moving to source directory"
       - cd $CODEBUILD_SRC_DIR
-
-      - echo "Building Spring Boot JAR"
       - mvn clean package -DskipTests
-
-      - echo "Building Docker image"
       - docker build -t $IMAGE_URI .
 
   post_build:
-    commands:
-      - echo "Pushing Docker image"
-      - docker push $IMAGE_URI
-
- post_build:
     commands:
       - docker push $IMAGE_URI
