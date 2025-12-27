@@ -12,16 +12,14 @@ phases:
     runtime-versions:
       java: corretto11
 
-  pre_build:
-    commands:
-      - echo "Logging in to Amazon ECR"
-      - aws ecr get-login-password --region $AWS_REGION |
-        docker login --username AWS --password-stdin \
-        $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
+pre_build:
+  commands:
+    - echo "Logging in to Amazon ECR"
+    - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
 
-      - echo "Computing IMAGE_URI"
-      - export IMAGE_URI=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO_NAME:$IMAGE_TAG
-      - echo "IMAGE_URI=$IMAGE_URI"
+    - echo "Computing IMAGE_URI"
+    - export IMAGE_URI=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO_NAME:$IMAGE_TAG
+    - echo "IMAGE_URI=$IMAGE_URI"
 
   build:
     commands:
