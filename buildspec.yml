@@ -6,26 +6,29 @@ phases:
       java: corretto11
       docker: 20
     commands:
-      - echo Installing Maven and Docker
+      - echo "Installing Maven and Docker"
       - docker --version
       - mvn --version
+  
   pre_build:
     commands:
-      - echo Logging in to Amazon ECR
-      - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 087189722990.dkr.ecr.us-east-1.amazonaws.com
+      - echo "Logging in to Amazon ECR..."
+      - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
+      
   build:
     commands:
-      - echo Building Spring Boot app
-      - mvn clean package -DskipTests -Dmaven.test.skip=true
-      - ls -la target/
+      - echo "Building Spring Boot app"
+      - mvn clean compile -DskipTests -Dmaven.test.skip=true
       - mv target/simple-springboot-app-*.jar app.jar
-      - echo Docker build
-      - IMAGE_URI=087189722990.dkr.ecr.us-east-1.amazonaws.com/simple-springboot-app:latest
+      - echo "Building Docker image..."
+      - IMAGE_URI=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/simple-springboot-app:latest
       - docker build -t $IMAGE_URI .
       - docker push $IMAGE_URI
+      
   post_build:
     commands:
-      - echo Build complete
+      - echo "Build completed"
+      - echo "Image pushed to: $IMAGE_URI"
 
 artifacts:
   files:
