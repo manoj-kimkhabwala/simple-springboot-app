@@ -1,5 +1,12 @@
 version: 0.2
 
+env:
+  variables:
+    AWS_ACCOUNT_ID: "123456789012"
+    AWS_REGION: "ap-south-1"
+    ECR_REPO_NAME: "simple-springboot-app"
+    IMAGE_TAG: "latest"
+
 phases:
   install:
     runtime-versions:
