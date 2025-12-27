@@ -2,8 +2,8 @@ version: 0.2
 
 env:
   variables:
-    AWS_ACCOUNT_ID: "087189722990"
-    AWS_REGION: "us-east-1"
+    AWS_ACCOUNT_ID: "123456789012"      # <-- replace
+    AWS_REGION: "ap-south-1"             # <-- replace
     ECR_REPO_NAME: "simple-springboot-app"
     IMAGE_TAG: "latest"
 
@@ -11,6 +11,17 @@ phases:
   install:
     runtime-versions:
       java: corretto11
+
+  pre_build:
+    commands:
+      - echo "Logging in to Amazon ECR"
+      - aws ecr get-login-password --region $AWS_REGION |
+        docker login --username AWS --password-stdin \
+        $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
+
+      - echo "Computing IMAGE_URI"
+      - export IMAGE_URI=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO_NAME:$IMAGE_TAG
+      - echo "IMAGE_URI=$IMAGE_URI"
 
   build:
     commands:
@@ -20,11 +31,10 @@ phases:
       - echo "Building Spring Boot JAR"
       - mvn clean package -DskipTests
 
-      - echo "Verifying JAR"
-      - ls -l target
-
       - echo "Building Docker image"
       - docker build -t $IMAGE_URI .
 
-images:
-  files: []
+  post_build:
+    commands:
+      - echo "Pushing Docker image"
+      - docker push $IMAGE_URI
