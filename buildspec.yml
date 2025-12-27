@@ -3,32 +3,21 @@ version: 0.2
 phases:
   install:
     runtime-versions:
-      java: corretto11
-      docker: 20
+      java: corretto11  # Matches pom.xml Java 11
     commands:
-      - echo "Installing Maven and Docker"
-      - docker --version
+      - echo "Installing Maven"
       - mvn --version
   
-  pre_build:
-    commands:
-      - echo "Logging in to Amazon ECR..."
-      - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
-      
   build:
     commands:
       - echo "Building Spring Boot app"
-      - mvn clean compile -DskipTests -Dmaven.test.skip=true
-      - mv target/simple-springboot-app-*.jar app.jar
-      - echo "Building Docker image..."
-      - IMAGE_URI=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/simple-springboot-app:latest
-      - docker build -t $IMAGE_URI .
-      - docker push $IMAGE_URI
+      - mvn clean package -DskipTests
       
   post_build:
     commands:
       - echo "Build completed"
-      - echo "Image pushed to: $IMAGE_URI"
+      - mv target/simple-springboot-app-*.jar app.jar
+      - echo "Build artifact: app.jar"
 
 artifacts:
   files:
