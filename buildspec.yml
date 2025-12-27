@@ -1,34 +1,36 @@
-   # File: buildspec.yml
-   version: 0.2
+version: 0.2
 
-   phases:
-     install:
-       commands:
-         - echo "Installing dependencies..."
-         - apt-get update && apt-get install -y maven
-     
-     pre_build:
-       commands:
-         - echo "Logging in to Amazon ECR..."
-         - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com
-         - REPOSITORY_NAME=spring-boot-app
-         - IMAGE_TAG=latest
-         - IMAGE_URI=$AWS_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/$REPOSITORY_NAME:$IMAGE_TAG
-     
-     build:
-       commands:
-         - echo "Building Maven project..."
-         - mvn clean package -DskipTests
-         - echo "Building Docker image..."
-         - docker build -t $IMAGE_URI .
-         - docker push $IMAGE_URI
-         - echo "Writing image definitions file..."
-         - printf '[{"name":"spring-boot-app","imageUri":"%s"}]' $IMAGE_URI > imagedefinitions.json
-     
-     post_build:
-       commands:
-         - echo "Build completed on $(date)"
+phases:
+  install:
+    runtime-versions:
+      java: corretto11
+      docker: 20
+    commands:
+      - echo "Installing Maven and Docker"
+      - docker --version
+      - mvn --version
+  
+  pre_build:
+    commands:
+      - echo "Logging in to Amazon ECR..."
+      - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
+      
+  build:
+    commands:
+      - echo "Building Spring Boot app"
+      - mvn clean package -DskipTests -Dmaven.test.skip=true
+      - echo "JAR created:"
+      - ls -la target/simple-springboot-app-*.jar
+      - mv target/simple-springboot-app-*.jar app.jar
+      - echo "Docker build..."
+      - IMAGE_URI=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/simple-springboot-app:latest
+      - docker build -t $IMAGE_URI .
+      - docker push $IMAGE_URI
+      
+  post_build:
+    commands:
+      - echo "Image pushed to: $IMAGE_URI"
 
-   artifacts:
-     files:
-       - imagedefinitions.json
+artifacts:
+  files:
+    - app.jar
