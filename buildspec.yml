@@ -2,7 +2,7 @@ version: 0.2
 
 env:
   variables:
-    AWS_ACCOUNT_ID: "087189722990"
+    AWS_ACCOUNT_ID: "052394459058"
     AWS_REGION: "us-east-1"
     ECR_REPO_NAME: "simple-springboot-app"
     IMAGE_TAG: "latest"
